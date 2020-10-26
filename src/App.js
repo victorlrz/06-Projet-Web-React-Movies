@@ -1,26 +1,40 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component, lazy, Suspense } from "react";
+import { Header } from "./components";
+import { Route, Switch, Redirect, withRouter } from "react-router-dom";
+import { connect } from "react-redux";
+import { fetchFavoris } from "./store/actions";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+const LazyFilms = lazy(() =>
+  import(/* webpackChunkName: 'films' */ "./features/films")
+);
+
+const LazyFavoris = lazy(() =>
+  import(/* webpackChunkName: 'favoris' */ "./features/favoris")
+);
+
+class App extends Component {
+  componentDidMount() {
+    this.props.fetchFavoris();
+  }
+
+  render() {
+    return (
+      <div className="App d-flex flex-column">
+        <Header />
+        <Suspense fallback={<h1>Chargement...</h1>}>
+          <Switch>
+            <Route path="/films" component={LazyFilms} />
+            <Route path="/favoris" component={LazyFavoris} />
+            <Redirect to="/films" />
+          </Switch>
+        </Suspense>
+      </div>
+    );
+  }
 }
 
-export default App;
+export default withRouter(
+  connect(null, {
+    fetchFavoris
+  })(App)
+);
